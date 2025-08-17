@@ -4,15 +4,23 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
-},
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "body-parser": "^2.2.0",
     "chrome-aws-lambda": "^10.1.0",
     "express": "^5.1.0",
     "puppeteer-core": "^10.4.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/go313332-bit/WordpPress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/go313332-bit/WordpPress/issues"
+  },
+  "homepage": "https://github.com/go313332-bit/WordpPress#readme",
+  "description": ""
 }
