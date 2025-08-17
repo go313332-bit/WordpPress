@@ -9,10 +9,16 @@ app.all("/scrape", async (req, res) => {
   if (!url) return res.status(400).send("No URL provided");
 
   try {
+    const executablePath = await chromium.executablePath;
+
+    if (!executablePath) {
+      return res.status(500).send("Chromium executable not found. Make sure chrome-aws-lambda is installed.");
+    }
+
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: executablePath,
       headless: chromium.headless,
     });
 

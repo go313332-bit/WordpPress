@@ -1,20 +1,16 @@
 {
-    "name": "ri-scraper",
-    "version": "1.0.0",
-    "main": "server.js",
-    "scripts": {
-      "preinstall": "rm -rf /opt/render/.cache/puppeteer || echo 'No cache to clear'",
-      "start": "node server.js"
-    }, 
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "ri-scraper",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-  "express": "5.1.0",
-  "chrome-aws-lambda": "1.20.4",
-  "puppeteer-core": "1.20.0",
-  "body-parser": "^2.2.0"
-},
+    "express": "5.1.0",
+    "chrome-aws-lambda": "1.20.4",
+    "puppeteer-core": "1.20.0",
+    "body-parser": "^2.2.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/go313332-bit/WordpPress.git"
