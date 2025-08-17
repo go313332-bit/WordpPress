@@ -4,3 +4,7 @@ node_modules
 .cache
 puppeteer/.local-chromium
 puppeteer/.cache
+node_modules/
+.local-chromium/
+.cache/
+*.local-chromium/
