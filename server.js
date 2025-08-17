@@ -1,54 +1,67 @@
-const express = require("express");
+// server.js
+const express = require('express');
+const fs = require('fs');
+const puppeteer = require('puppeteer-core'); // use core only
 const app = express();
 
-app.all("/scrape", async (req, res) => {
-  const url = req.query.url;
-  console.log("[Node] Incoming scrape request:", url);
+async function findChromium() {
+  const candidates = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
+    '/snap/bin/chromium'
+  ];
+  for (const p of candidates) {
+    if (!p) continue;
+    try {
+      if (fs.existsSync(p)) {
+        console.log('[Node] Found chromium at', p);
+        return p;
+      }
+    } catch (e) {}
+  }
+  console.log('[Node] No system chromium found in candidates.');
+  return null;
+}
 
-  if (!url) return res.status(400).send("No URL provided");
+app.all('/scrape', async (req, res) => {
+  const url = req.query.url;
+  console.log('[Node] Incoming scrape request:', url);
+  if (!url) return res.status(400).send('No URL provided');
 
   let browser;
-
   try {
-    // جرّب الأول chrome-aws-lambda (بيشتغل كويس مع السيرفرات السيرفرلس)
-    const chromium = require("chrome-aws-lambda");
-    const puppeteer = require("puppeteer-core");
-
-    const executablePath = await chromium.executablePath;
-
-    if (executablePath) {
-      console.log("[Node] Launching with chrome-aws-lambda");
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath,
-        headless: chromium.headless,
-      });
-    } else {
-      // fallback: puppeteer العادي
-      console.log("[Node] Falling back to puppeteer");
-      const puppeteer = require("puppeteer");
-      browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
+    const executablePath = await findChromium();
+    if (!executablePath) {
+      // Clear, actionable error
+      const msg = 'No system chromium found. On Render use system chromium or install puppeteer (heavy).';
+      console.error('[Node] ' + msg);
+      return res.status(502).send(msg);
     }
 
-    const page = await browser.newPage();
-    console.log("[Node] Navigating to:", url);
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 120000 });
-    const html = await page.content();
-    await browser.close();
+    browser = await puppeteer.launch({
+      executablePath,
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      defaultViewport: null
+    });
 
-    console.log("[Node] Successfully scraped:", url);
+    const page = await browser.newPage();
+    console.log('[Node] Navigating to:', url);
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 120000 });
+    const html = await page.content();
+
+    await browser.close();
+    console.log('[Node] Successfully scraped:', url);
     res.send(html);
   } catch (err) {
-    if (browser) await browser.close();
-    console.error("[Node] Scrape error:", err);
-    res.status(500).send("Error: " + err.message);
+    if (browser) await browser.close().catch(()=>{});
+    console.error('[Node] Scrape error:', err);
+    res.status(500).send('Error: ' + err.message);
   }
 });
 
-app.listen(3000, () =>
-  console.log("Headless server running on port 3000")
-);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => console.log(`Headless server running on port ${PORT}`));
