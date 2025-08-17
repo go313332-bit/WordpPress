@@ -8,13 +8,11 @@ app.all("/scrape", async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).send("No URL provided");
 
-  let browser;
   try {
-    const executablePath = await chromium.executablePath;
-    browser = await puppeteer.launch({
+    const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath,
+      executablePath: await chromium.executablePath,
       headless: chromium.headless,
     });
 
@@ -25,7 +23,7 @@ app.all("/scrape", async (req, res) => {
 
     res.send(html);
   } catch (err) {
-    if (browser) await browser.close();
+    console.error(err);
     res.status(500).send("Error: " + err.message);
   }
 });
